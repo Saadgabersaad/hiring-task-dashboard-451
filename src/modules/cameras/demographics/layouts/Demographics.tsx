@@ -9,6 +9,8 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import { FormItem } from '@/modules/cameras/demographics/components/Input';
 import Tags from "@/modules/cameras/demographics/components/Tags";
+import {Button} from "@mui/material";
+import {Flex} from "@/modules/cameras/camera-list/components/flex";
 
 export type Tag = {
     id: string;
@@ -131,15 +133,18 @@ export default function CameraDemographicsForm() {
                 </button>
 
                 {(isCreated || isUpdated) && (
-                    <>
+                    <Flex flexDirection={"column"}>
                         <p className="text-green-600 text-center mt-2">✅ Configuration saved successfully!</p>
-                        <Link
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            component={Link}
                             href={`/cameras/${cameraId}/demographics/results`}
-                            className="mt-4 inline-block text-blue-600 underline text-center w-full"
+                            sx={{ mt: 2 }}
                         >
                             🔍 View Analytics
-                        </Link>
-                    </>
+                        </Button>
+                    </Flex>
                 )}
             </form>
         </div>

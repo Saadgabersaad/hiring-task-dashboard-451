@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/app/library/api';
 
-export const useUpdateCamera = (id: string) => {
+export const useUpdateCamera = (id: string | Array<string> | undefined) => {
     const queryClient = useQueryClient();
 
     return useMutation({

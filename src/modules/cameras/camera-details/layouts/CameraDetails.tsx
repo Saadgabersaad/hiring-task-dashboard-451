@@ -1,37 +1,47 @@
 'use client';
-import {useParams, useRouter} from 'next/navigation';
+
+import { useParams, useRouter } from 'next/navigation';
 import { useCameraDetails } from '@/modules/cameras/camera-details/hooks/useCameraDetails';
 import { useUpdateCamera } from '@/modules/cameras/camera-details/hooks/useUpdateCamera';
 import { useForm } from 'react-hook-form';
-import {useEffect} from "react";
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { FormItem } from '@/modules/cameras/demographics/components/Input';
+import {Button} from "@mui/material";
+import {Flex} from "@/modules/cameras/camera-list/components/flex";
+
+type CameraFormData = {
+    name: string;
+    rtsp_url: string;
+    status: 'active' | 'inactive';
+};
 
 export default function CameraDetailPage() {
-    const params = useParams();
-    const id = params?.id as string;
-    const router = useRouter();
     const { id: cameraId } = useParams();
+    const router = useRouter();
+    const { data, isLoading } = useCameraDetails(cameraId);
+    const { mutate, isPending, isSuccess } = useUpdateCamera(cameraId);
 
-    const { data, isLoading } = useCameraDetails(id);
-    const { mutate, isPending, isSuccess } = useUpdateCamera(id);
-
-    const form = useForm({
+    const {
+        control,
+        handleSubmit,
+        reset,
+    } = useForm<CameraFormData>({
+        defaultValues: {
+            name: '',
+            rtsp_url: '',
+            status: 'active',
+        },
         values: data
             ? {
                 name: data.name || '',
-                status: data.is_active ? 'active' : 'inactive',
                 rtsp_url: data.rtsp_url || '',
+                status: data.is_active ? 'active' : 'inactive',
             }
-            : {
-                name: '',
-                status: 'active',
-                rtsp_url: '',
-            },
+            : undefined,
     });
 
-    const { register, handleSubmit } = form;
-
-    const onSubmit = (formData: any) => {
+    const onSubmit = (formData: CameraFormData) => {
         const payload = {
             name: formData.name,
             rtsp_url: formData.rtsp_url,
@@ -59,51 +69,70 @@ export default function CameraDetailPage() {
             <h1 className="text-2xl font-bold mb-4 text-center">📷 Edit Camera Details</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                    <label className="block mb-1">📛 Name:</label>
-                    <input {...register('name')} className="border w-full p-2 rounded" />
-                </div>
+                <FormItem
+                    name="name"
+                    label="📛 Camera Name"
+                    control={control}
+                    required
+                />
 
-                <div>
-                    <label className="block mb-1">🔗 RTSP URL:</label>
-                    <input {...register('rtsp_url')} className="border w-full p-2 rounded" />
-                </div>
+                <FormItem
+                    name="rtsp_url"
+                    label="🔗 RTSP URL"
+                    control={control}
+                    required
+                    placeholder="rtsp://example.com/stream"
+                />
 
-                <div>
-                    <label className="block mb-1">⚙️ Status:</label>
-                    <select {...register('status')} className="border w-full p-2 rounded">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
+                <FormItem
+                    name="status"
+                    label="⚙️ Status"
+                    control={control}
+                    required
+                    type="select"
+                    options={[
+                        { label: 'Active', value: 'active' },
+                        { label: 'Inactive', value: 'inactive' },
+                    ]}
+                />
 
-                <button
-                    type="submit"
-                    disabled={isPending}
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                    {isPending ? 'Saving...' : '💾 Save'}
-                </button>
+              <Flex flexDirection={'column'}>
+                  <Button
+                      variant="contained"
+                      type="submit"
+                      disabled={isPending}
+                      className="bg-blue-600 text-white px-4 py-2 rounded"
+                  >
+                      {isPending ? 'Saving...' : '💾 Save'}
+                  </Button>
 
-                {isSuccess && (
-                    <p className="text-green-600 mt-2">✅ Saved Successfully! Redirecting...</p>
-                )}
-                <Link
-                    href={`/cameras/${id}/demographics`}
-                    className="block text-center text-blue-600 hover:underline mt-4"
-                >
-                    ⚙️ Configure Demographics
-                </Link>
-                <Link
-                    href={`/cameras/${cameraId}/demographics/results`}
-                    className="mt-4 inline-block text-blue-600 underline"
-                >
-                    🔍 View Analytics
-                </Link>
+                  {isSuccess && (
+                      <p className="text-green-600 mt-2">✅ Saved Successfully! Redirecting...</p>
+                  )}
+
+
+                  <Button
+                      variant="contained"
+                      color="primary"
+                      component={Link}
+                      href={`/cameras/${cameraId}/demographics`}
+                      sx={{ mt: 2 }}
+                  >
+                      ⚙️ Configure Demographics
+                  </Button>
+
+                  <Button
+                      variant="outlined"
+                      color="primary"
+                      component={Link}
+                      href={`/cameras/${cameraId}/demographics/results`}
+                      sx={{ mt: 2 }}
+                  >
+                      🔍 View Analytics
+                  </Button>
+              </Flex>
 
             </form>
-
-
         </div>
     );
 }
