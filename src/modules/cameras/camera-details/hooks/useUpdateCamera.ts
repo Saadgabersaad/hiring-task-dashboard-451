@@ -13,8 +13,8 @@ export const useUpdateCamera = (id: string) => {
 
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['camera', id] }); // نحدث بيانات الكاميرا
-            queryClient.invalidateQueries({ queryKey: ['cameras'] }); // نحدث القائمة كمان
+            queryClient.invalidateQueries({ queryKey: ['camera', id] });
+            queryClient.invalidateQueries({ queryKey: ['cameras'] });
         },
     });
 };

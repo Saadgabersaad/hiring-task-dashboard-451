@@ -9,7 +9,7 @@ const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57'
 type Props = {
     chartType: 'bar' | 'line' | 'pie';
     setChartType: (val: 'bar' | 'line' | 'pie') => void;
-    distributionData: { label: string; count: number }|[];
+    distributionData: { label: string; count: number }[];
 };
 
 export default function DistributionChart({ chartType, setChartType, distributionData }: Props) {
