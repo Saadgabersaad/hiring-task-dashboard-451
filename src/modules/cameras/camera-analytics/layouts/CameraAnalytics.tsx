@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import {
-    CircularProgress, Grid, Paper, Typography, TableCell,
+    CircularProgress, Grid, Paper, Typography, TableCell, Box,
 } from '@mui/material';
 import Link from 'next/link';
 import { Dayjs } from 'dayjs';
@@ -19,6 +19,8 @@ import filterControl from '@/modules/cameras/camera-analytics/components/FilterC
 import Header from '@/modules/cameras/camera-analytics/components/Header';
 import { Page } from '@/modules/core/page';
 import AgeCharts from "@/modules/cameras/camera-analytics/components/Charts";
+import {Cards} from "@/modules/cameras/camera-analytics/components/Card";
+import {Flex} from "@/modules/cameras/camera-list/components/flex";
 
 interface AgeDistributionRow {
     label: string;
@@ -55,20 +57,24 @@ export default function DemographicsResultsPage() {
     const analytics = data?.analytics;
     const { data: camera } = useCameraDetails(cameraId as string);
 
-    // const paginatedItems = useMemo(() => {
-    //     const start = page * rowsPerPage;
-    //     const end = start + rowsPerPage;
-    //     return items.slice(start, end);
-    // }, [items, page, rowsPerPage]);
-    // console.log(items);
+    console.log(data);
 
     const ageDistributionData  = useMemo(() => {
         if (!analytics?.age_distribution) return [];
 
         return Object.entries(analytics.age_distribution).map(([label, count],index) => ({
-            id: `row-${index}`, // <-- required
+            id: `row-${index}`,
             label,
             count,
+        }));
+    }, [analytics]);
+
+    const analyticsCards = useMemo(() => {
+        if (!analytics) return [];
+        return Object.entries(analytics).map(([key, value]) => ({
+            key,
+            title: key,
+            value,
         }));
     }, [analytics]);
 
@@ -77,8 +83,7 @@ export default function DemographicsResultsPage() {
         <Page>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <div className="p-6">
-                    <Header />
-
+                    <Header  cameraName={camera?.name}/>
                     <Grid container spacing={2} my={4}>
                         <Grid size={{xs: 12, sm: 6, md: 3, lg: 2}}>
                             {filterControl('Gender', gender, setGender, ['male', 'female'])}
@@ -114,14 +119,38 @@ export default function DemographicsResultsPage() {
                         <div className="flex justify-center items-center h-64">
                             <CircularProgress />
                         </div>
-                    ) : (
-                        <Paper elevation={2} className="p-4">
-                            <Typography align={"center"} variant="h5" gutterBottom>📊 Age Distribution Charts</Typography>
+                    ) : (<Flex flexDirection={'column'} gap={4}>
+
+                            <Flex flexDirection="column" gap={4} justifySelf={'center'} >
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))',
+                                        gap: 2,
+                                    }}
+                                >
+                                        {analyticsCards.map(({ key, title, value }) => (
+                                            <Cards key={key} title={title} value={value} />
+                                        ))}
+
+                                </Box>
+                            </Flex>
+
+
+
+                            <Paper elevation={2} className="p-4">
+                                <Flex justifySelf={'center'} my={2}>
+                                    <Typography width={'fit-content'} variant="h5" gutterBottom color={'info'}  sx={{border:"solid lightgray 1px",px:4,py:2,borderRadius:5}} > Age Distribution Charts</Typography>
+                                </Flex>
                             <AgeCharts ageDistributionData={ageDistributionData} />
 
                             {ageDistributionData.length > 0 && (
                                 <div className="p-4 mt-6">
-                                    <Typography align={"center"} variant="h6" gutterBottom my={2} >📋 Age Distribution Table</Typography>
+                                    <Flex justifySelf={'center'} my={2}>
+                                        <Typography width={'fit-content'} variant="h5" gutterBottom color={'info'}  sx={{border:"solid lightgray 1px",px:4,py:2,borderRadius:5}} >  Age Distribution Table</Typography>
+                                    </Flex>
+
                                     <EnhancedTablePagination
                                         rows={ageDistributionData }
                                         onChangePage={() => {}}
@@ -141,7 +170,9 @@ export default function DemographicsResultsPage() {
 
                             {items.length > 0 && (
                                 <div className="p-4 mt-6">
-                                    <Typography align={"center"} variant="h6" gutterBottom my={2}  >🧑‍🤝‍🧑 Individuals Detected</Typography>
+                                    <Flex justifySelf={'center'} my={2}>
+                                        <Typography width={'fit-content'} variant="h5" gutterBottom color={'info'}  sx={{border:"solid lightgray 1px",px:4,py:2,borderRadius:5}} > Individuals Detected</Typography>
+                                    </Flex>
                                     <EnhancedTablePagination
                                         rows={items!}
                                         page={page}
@@ -169,7 +200,8 @@ export default function DemographicsResultsPage() {
                                     />
                                 </div>
                             )}
-                        </Paper>
+
+                        </Paper></Flex>
                     )}
 
                     <Link
