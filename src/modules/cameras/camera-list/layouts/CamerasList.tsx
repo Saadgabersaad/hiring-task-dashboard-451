@@ -25,6 +25,7 @@ export default function CameraListPage() {
         data?: { cameras: Camera[]; total: number };
     };
 
+    console.log(data)
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <Typography variant="h5" gutterBottom>

@@ -10,6 +10,7 @@ interface Camera {
     name: string;
     rtsp_url: string;
     is_active: boolean;
+    updated_at: string;
 }
 
 export const Table = ({
@@ -35,6 +36,7 @@ export const Table = ({
                 <React.Fragment key={row.id}>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.rtsp_url}</TableCell>
+                    <TableCell>{row.updated_at}</TableCell>
                     <TableCell>
                         <Link href={`/cameras/${row.id}`}>
               <span style={{ color: row.is_active ? 'green' : 'red' }}>

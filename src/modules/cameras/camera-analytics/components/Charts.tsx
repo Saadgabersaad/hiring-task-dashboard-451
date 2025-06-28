@@ -1,68 +1,56 @@
-import { Paper, Tab, Tabs, Typography } from '@mui/material';
-import {
-    BarChart, Bar, LineChart, Line, PieChart, Pie,
-    Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
-} from 'recharts';
+'use client';
+import React from 'react';
+import { Typography } from '@mui/material';
+import { Bar, Pie } from 'react-chartjs-2';
+import {Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, Title} from 'chart.js';
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57'];
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend, Title);
 
-type Props = {
-    chartType: 'bar' | 'line' | 'pie';
-    setChartType: (val: 'bar' | 'line' | 'pie') => void;
-    distributionData: { label: string; count: number }[];
-};
+const COLORS = [
+    'rgba(255, 99, 132, 0.5)',
+    'rgba(54, 162, 235, 0.5)',
+    'rgba(255, 206, 86, 0.5)',
+    'rgba(75, 192, 192, 0.5)',
+    'rgba(153, 102, 255, 0.5)',
+    'rgba(255, 159, 64, 0.5)',
+];
+const BORDER_COLORS = COLORS.map(c => c.replace('0.5', '1'));
 
-export default function DistributionChart({ chartType, setChartType, distributionData }: Props) {
-    const renderChart = () => {
-        switch (chartType) {
-            case 'bar':
-                return (
-                    <BarChart data={distributionData}>
-                        <XAxis dataKey="label" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="count">
-                            {distributionData.map((_, index) => (
-                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                );
-            case 'line':
-                return (
-                    <LineChart data={distributionData}>
-                        <XAxis dataKey="label" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
-                    </LineChart>
-                );
-            case 'pie':
-                return (
-                    <PieChart>
-                        <Pie data={distributionData} dataKey="count" nameKey="label" cx="50%" cy="50%" outerRadius={100} label>
-                            {distributionData.map((_, index) => (
-                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                );
-        }
+interface Props {
+    ageDistributionData: { label: string; count: number|unknown }[];
+}
+
+export default function AgeCharts({ ageDistributionData }: Props) {
+    const chartData = {
+        labels: ageDistributionData.map(d => d.label),
+        datasets: [{
+            label: 'Age Count',
+            data: ageDistributionData.map(d => d.count),
+            backgroundColor: COLORS,
+            borderColor: BORDER_COLORS,
+            borderWidth: 1,
+        }],
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' as const },
+            title: { display: true, text: 'Age Distribution' },
+        },
     };
 
     return (
-        <Paper elevation={2} className="p-4">
-            <Typography variant="h6" gutterBottom>📈 Analytics Chart</Typography>
-            <Tabs centered value={chartType} onChange={(_, val) => setChartType(val)} className="mb-4">
-                <Tab value="bar" label="Bar Chart" />
-                <Tab value="line" label="Line Chart" />
-                <Tab value="pie" label="Pie Chart" />
-            </Tabs>
-            <ResponsiveContainer width="100%" height={300}>
-                {renderChart()}
-            </ResponsiveContainer>
-        </Paper>
+        <div className="flex flex-col md:flex-row gap-6 p-5 justify-around items-center h-auto">
+            <div className="w-full md:w-1/2 h-[350px]">
+                <Typography variant="subtitle1" align="center">Bar Chart</Typography>
+                <Bar data={chartData} options={chartOptions} />
+            </div>
+            <div className="w-full md:w-1/2 h-[350px] ">
+                <Typography variant="subtitle1" align="center">Pie Chart</Typography>
+                <Pie data={chartData} options={chartOptions} />
+            </div>
+        </div>
     );
 }
-

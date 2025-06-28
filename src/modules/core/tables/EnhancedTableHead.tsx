@@ -3,18 +3,14 @@ import { HeadCell } from '@/modules/core/consts/tableHead'
 
 type EnhacedTableHeadProps = {
   rowCount: number
-  numSelected: number
   headCells: HeadCell[]
   showCheckBox?: boolean
-  onSelectAllClick: (e:React.ChangeEvent<HTMLInputElement>) => void
 }
 
 
 export function EnhancedTableHead({
   headCells,
   rowCount,
-  numSelected,
-  onSelectAllClick,
     showCheckBox=true,
 }: EnhacedTableHeadProps) {
   return (
@@ -23,8 +19,6 @@ export function EnhancedTableHead({
         {showCheckBox && <TableCell padding="checkbox">
           <Checkbox
               color='primary'
-              checked={rowCount > 0 && numSelected === rowCount}
-              onChange={onSelectAllClick}
               inputProps={{
                 'aria-label': 'select all ',
               }}
@@ -34,7 +28,7 @@ export function EnhancedTableHead({
           <TableCell
               width={'fit-content'}
             key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
+            align={headCell.numeric ? 'center' : 'left'}
             padding={headCell.disablePadding ? 'none' : 'normal'}
             sx={{ fontWeight: '600',fontSize:'16px'}}
           >

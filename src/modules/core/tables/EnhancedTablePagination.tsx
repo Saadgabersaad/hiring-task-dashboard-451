@@ -1,20 +1,10 @@
   import React from "react";
-  import {
-    Checkbox,
-    TableCell,
-    Skeleton,
-    TableContainer,
-    Table,
-    TableRow,
-    TableBody,
-    Paper,
-    TablePagination,
-  } from "@mui/material";
+  import {TableCell, Skeleton, TableContainer, Table, TableRow, TableBody, Paper, TablePagination,} from "@mui/material";
   import { HeadCell } from "@/modules/core/consts/tableHead";
   import {EnhancedTableHead} from "@/modules/core/tables/EnhancedTableHead";
 
   export type EnhancedTablePaginationProps<T> = {
-    rows: (T & { id: string; comments?: string })[];
+    rows: (T & { id?: string; label?: string[] })[];
     headCells: HeadCell[];
     loading: boolean;
     onChangePage(skip: number, take: number): void;
@@ -24,8 +14,8 @@
     page?: number;
     rowsPerPage?: number;
     onChangeRowsPerPage?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-
   };
+
 
   export function EnhancedTablePagination<T>({
     rows,
@@ -36,22 +26,13 @@
     totalCount,
     showCheckBox=false,
 
+
   }: EnhancedTablePaginationProps<T>) {
-    const [selected, setSelected] = React.useState<readonly string[]>([]);
     const [page, setPage] = React.useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
 
-    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (event.target.checked) {
-        if (rows) {
-          const newSelected = rows?.map((n) => n?.id);
-          setSelected(newSelected);
-          return;
-        }
-      }
-      setSelected([]);
-    };
+
 
 
     const handleChangePage = (_event: unknown, newPage: number) => {
@@ -81,7 +62,7 @@
       const newTake = parseInt(event.target.value, 10);
       setRowsPerPage(newTake);
       setPage(0);
-      onChangePage(0, newTake); // ✅ إعادة أول صفحة
+      onChangePage(0, newTake);
     };
 
     return (
@@ -90,9 +71,7 @@
           <Table>
             <EnhancedTableHead
               headCells={headCells}
-              numSelected={selected.length}
               rowCount={rows?.length || 0}
-              onSelectAllClick={handleSelectAllClick}
               showCheckBox={showCheckBox}
             />
             <TableBody>
@@ -102,20 +81,17 @@
                 <>
                   {visibleRows?.map((row, index) => {
                     const key = row.id;
-                    const isItemSelected = selected.includes(key);
                     const labelId = `enhanced-table-checkbox-${index}`;
 
                     return (
                       <TableRow
                         hover
                         role="checkbox"
-                        aria-checked={isItemSelected}
                         tabIndex={-1}
                         key={key}
-                        selected={isItemSelected}
                         sx={{
                           cursor: "pointer",
-                          height: "65px",
+                          height: "55px",
                           width: "fit-content",
                         }}
                       >

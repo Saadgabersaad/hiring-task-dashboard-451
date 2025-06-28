@@ -5,91 +5,134 @@ import { useForm } from 'react-hook-form';
 import { useCameraDetails } from '@/modules/cameras/camera-details/hooks/useCameraDetails';
 import { useCreateDemographicsConfig } from '@/modules/cameras/demographics/hooks/useCreateDemographicsConfig';
 import { useUpdateDemographicsConfig } from '@/modules/cameras/demographics/hooks/useUpdateDemographicsConfig';
-import { useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import Link from 'next/link';
+import { FormItem } from '@/modules/cameras/demographics/components/Input';
+import Tags from "@/modules/cameras/demographics/components/Tags";
+
+export type Tag = {
+    id: string;
+    name: string;
+    color?: string;
+};
+export type DemographicsFormData = {
+    name: string;
+    rtsp_url: string;
+    stream_frame_width: number;
+    stream_frame_height: number;
+    stream_max_length: number;
+    stream_quality: number;
+    stream_fps: number;
+    stream_skip_frames: number;
+    tags: Tag[] ;
+};
 
 export default function CameraDemographicsForm() {
     const { id: cameraId } = useParams();
     const { data: camera, isLoading } = useCameraDetails(cameraId as string);
-    const config = camera?.demographics_config;
+    const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
-    const form = useForm({
+    const {
+        control,
+        handleSubmit,
+        reset,
+    } = useForm<DemographicsFormData>({
         defaultValues: {
-            track_history_max_length: 10,
-            exit_threshold: 30,
-            min_track_duration: 5,
-            detection_confidence_threshold: 0.8,
-            demographics_confidence_threshold: 0.8,
-            min_track_updates: 5,
-            box_area_threshold: 0.1,
-            save_interval: 600,
-            frame_skip_interval: 1.0,
+            name: '',
+            rtsp_url: '',
+            stream_frame_width: 0,
+            stream_frame_height: 0,
+            stream_max_length: 0,
+            stream_quality: 0,
+            stream_fps: 0,
+            stream_skip_frames: 0,
         },
     });
 
-    const { register, handleSubmit, reset } = form;
-
     useEffect(() => {
-        if (config) {
-            reset(config);
+        if (camera) {
+            reset({
+                name: camera.name,
+                rtsp_url: camera.rtsp_url,
+                stream_frame_width: camera.stream_frame_width,
+                stream_frame_height: camera.stream_frame_height,
+                stream_max_length: camera.stream_max_length,
+                stream_quality: camera.stream_quality,
+                stream_fps: camera.stream_fps,
+                stream_skip_frames: camera.stream_skip_frames,
+            });
+            setSelectedTags(camera.tags || []);
         }
-    }, [config, reset]);
-
+    }, [camera, reset]);
     const { mutate: createConfig, isPending: isCreating, isSuccess: isCreated } = useCreateDemographicsConfig();
-    const { mutate: updateConfig, isPending: isUpdating, isSuccess: isUpdated } = useUpdateDemographicsConfig(config?.id);
+    const { mutate: updateConfig, isPending: isUpdating, isSuccess: isUpdated } = useUpdateDemographicsConfig(camera?.demographics_config?.id);
 
-    const onSubmit = (formData: any) => {
+    const onSubmit = (data: DemographicsFormData) => {
         const payload = {
-            ...formData,
+            ...data,
             camera_id: cameraId,
-            box_area_threshold: parseFloat(formData.box_area_threshold),
-            frame_skip_interval: parseFloat(formData.frame_skip_interval),
-            detection_confidence_threshold: parseFloat(formData.detection_confidence_threshold),
-            demographics_confidence_threshold: parseFloat(formData.demographics_confidence_threshold),
+            tags: selectedTags,
         };
 
-        if (config?.id) {
+        if (camera?.demographics_config?.id) {
             updateConfig(payload);
         } else {
             createConfig(payload);
         }
     };
 
+    const handleTagSelect = (tag: Tag) => {
+        if (!selectedTags.find(t => t.id === tag.id)) {
+            setSelectedTags([...selectedTags, tag]);
+        }
+    };
+
+    const handleTagRemove = (tagId: string) => {
+        setSelectedTags(selectedTags.filter(tag => tag.id !== tagId));
+    };
+
     if (isLoading) return <p className="p-6">Loading camera data...</p>;
 
     return (
-
         <div className="p-6 max-w-xl mt-5 mx-auto bg-white rounded shadow">
             <h1 className="text-2xl font-bold mb-4 text-center">🎛️ Demographics Configuration</h1>
 
-            {camera?.name && (
-                <p className="text-center text-gray-600 font-bold text-lg mb-4">📷 Camera Name: <strong>{camera.name}</strong></p>
-            )}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+                <FormItem name="name" label="Camera Name" control={control} required />
+                <FormItem name="rtsp_url" label="RTSP URL" control={control} required placeholder="rtsp://example.com/stream" />
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormItem name="stream_frame_width" label="Frame Width" control={control} type="number" required min={0} />
+                    <FormItem name="stream_frame_height" label="Frame Height" control={control} type="number" required min={0} />
+                </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <Input label="📊 Track History Max Length" {...register('track_history_max_length')} />
-                <Input label="🚪 Exit Threshold" {...register('exit_threshold')} />
-                <Input label="⏱️ Min Track Duration" {...register('min_track_duration')} />
-                <Input label="🎯 Detection Confidence Threshold" step="0.01" {...register('detection_confidence_threshold')} />
-                <Input label="🧠 Demographics Confidence Threshold" step="0.01" {...register('demographics_confidence_threshold')} />
-                <Input label="🔁 Min Track Updates" {...register('min_track_updates')} />
-                <Input label="📦 Box Area Threshold" step="0.01" {...register('box_area_threshold')} />
-                <Input label="💾 Save Interval (seconds)" {...register('save_interval')} />
-                <Input label="⏩ Frame Skip Interval" step="0.1" {...register('frame_skip_interval')} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormItem name="stream_max_length" label="Max Length (seconds)" control={control} type="number" required min={0} />
+                    <FormItem name="stream_quality" label="Quality (1–100)" control={control} type="number" required min={1} max={100} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormItem name="stream_fps" label="Frames Per Second" control={control} type="number" required min={0} />
+                    <FormItem name="stream_skip_frames" label="Skip Frames" control={control} type="number" required min={0} />
+                </div>
+                <Tags
+                    tags={selectedTags}
+                    selectedTagIds={selectedTags}
+                    onTagSelect={handleTagSelect}
+                    onTagRemove={handleTagRemove}
+                />
 
                 <button
                     type="submit"
                     className="bg-blue-600 text-white px-4 py-2 rounded w-full"
                     disabled={isCreating || isUpdating}
                 >
-                    {isCreating || isUpdating ? 'Saving...' : '💾 Save Configuration'}
+                           {isCreating || isUpdating ? 'Saving...' : '💾 Save Configuration'}
                 </button>
 
                 {(isCreated || isUpdated) && (
                     <>
                         <p className="text-green-600 text-center mt-2">✅ Configuration saved successfully!</p>
-
                         <Link
                             href={`/cameras/${cameraId}/demographics/results`}
                             className="mt-4 inline-block text-blue-600 underline text-center w-full"
@@ -102,10 +145,3 @@ export default function CameraDemographicsForm() {
         </div>
     );
 }
-
-const Input = ({ label, ...rest }: { label: string; [key: string]: any }) => (
-    <div>
-        <label className="block mb-1 font-medium">{label}</label>
-        <input {...rest} type="number" step={rest.step || '1'} className="border w-full p-2 rounded" />
-    </div>
-);
