@@ -65,3 +65,4 @@ export default function DistributionChart({ chartType, setChartType, distributio
         </Paper>
     );
 }
+
